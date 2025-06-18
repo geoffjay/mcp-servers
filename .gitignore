@@ -1,1 +1,5 @@
+__pycache__
+
+/overmind/.pytest_cache
+/overmind/.venv
 /overmind/dist
