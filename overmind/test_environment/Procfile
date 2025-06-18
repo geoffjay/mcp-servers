@@ -1,0 +1,4 @@
+web: python -u test_web.py
+worker: python -u test_worker.py
+logger: python -u test_logger.py
+counter: python -u test_counter.py 

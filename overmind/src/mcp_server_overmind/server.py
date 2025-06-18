@@ -38,16 +38,15 @@ class OvermindManager:
                 *command,
                 cwd=self.working_dir,
                 stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE,
-                text=True
+                stderr=asyncio.subprocess.PIPE
             )
             
             stdout, stderr = await process.communicate()
             
             return {
                 "success": process.returncode == 0,
-                "stdout": stdout.strip() if stdout else "",
-                "stderr": stderr.strip() if stderr else "",
+                "stdout": stdout.decode('utf-8').strip() if stdout else "",
+                "stderr": stderr.decode('utf-8').strip() if stderr else "",
                 "return_code": process.returncode
             }
         except Exception as e:
@@ -57,6 +56,47 @@ class OvermindManager:
                 "stderr": f"Error executing command: {str(e)}",
                 "return_code": -1
             }
+
+    async def start_overmind_background(self, command: List[str]) -> Dict[str, Any]:
+        """Start overmind in the background and return immediately."""
+        try:
+            # Start the process but don't wait for it to complete
+            process = await asyncio.create_subprocess_exec(
+                *command,
+                cwd=self.working_dir,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE
+            )
+            
+            # Give it a moment to start and check if it fails immediately
+            await asyncio.sleep(2)
+            
+            # Check if the process is still running
+            if process.returncode is None:
+                # Process is still running, which is good for overmind start
+                return {
+                    "success": True,
+                    "stdout": f"Overmind started in background with PID {process.pid}",
+                    "stderr": "",
+                    "return_code": 0,
+                    "process": process
+                }
+            else:
+                # Process exited quickly, probably an error
+                stdout, stderr = await process.communicate()
+                return {
+                    "success": False,
+                    "stdout": stdout.decode('utf-8').strip() if stdout else "",
+                    "stderr": stderr.decode('utf-8').strip() if stderr else "",
+                    "return_code": process.returncode
+                }
+        except Exception as e:
+            return {
+                "success": False,
+                "stdout": "",
+                "stderr": f"Error starting overmind: {str(e)}",
+                                 "return_code": -1
+             }
 
 # Global manager instance
 overmind_manager = OvermindManager()
@@ -87,10 +127,33 @@ async def overmind_start(
         overmind_manager = OvermindManager(procfile, working_dir)
     
     if overmind_manager.is_running():
-        return "Overmind is already running in this directory."
+        return f"Overmind is already running in {overmind_manager.working_dir}."
     
+    # More detailed Procfile detection and error reporting
     if not overmind_manager.procfile_path.exists():
-        return f"Procfile not found at {overmind_manager.procfile_path}. Please specify a valid procfile path."
+        # Try to provide helpful suggestions
+        error_msg = f"Procfile not found at {overmind_manager.procfile_path}."
+        
+        # Check if there's a Procfile in common locations
+        suggestions = []
+        
+        # Check current directory
+        current_procfile = Path.cwd() / "Procfile"
+        if current_procfile.exists() and current_procfile != overmind_manager.procfile_path:
+            suggestions.append(f"Found Procfile at {current_procfile}")
+        
+        # Check parent directories
+        for parent in Path.cwd().parents[:3]:  # Check up to 3 parent directories
+            parent_procfile = parent / "Procfile"
+            if parent_procfile.exists():
+                suggestions.append(f"Found Procfile at {parent_procfile}")
+                break
+        
+        if suggestions:
+            error_msg += f"\n\nSuggestions:\n" + "\n".join(f"- {s}" for s in suggestions)
+            error_msg += f"\n\nUse overmind_start(procfile='path/to/Procfile') or overmind_start(working_dir='path/to/directory')"
+        
+        return error_msg
     
     command = ["overmind", "start"]
     
@@ -105,10 +168,16 @@ async def overmind_start(
     if auto_restart:
         command.append("-r")
     
-    result = await overmind_manager.run_command(command)
+    # Use the background start method for overmind start
+    result = await overmind_manager.start_overmind_background(command)
     
     if result["success"]:
-        return f"Overmind started successfully.\n{result['stdout']}"
+        # Wait a bit more and check if it's actually running
+        await asyncio.sleep(3)
+        if overmind_manager.is_running():
+            return f"Overmind started successfully and is running.\n{result['stdout']}"
+        else:
+            return f"Overmind appeared to start but is not running. Check for errors."
     else:
         return f"Failed to start Overmind: {result['stderr']}"
 
@@ -259,6 +328,57 @@ async def overmind_check_procfile(path: Optional[str] = None) -> str:
             return f"Procfile exists at {procfile_path} but couldn't read it: {str(e)}"
     else:
         return f"No Procfile found at {procfile_path}"
+
+@mcp.tool()
+async def overmind_find_procfiles(start_path: Optional[str] = None) -> str:
+    """Find all Procfiles in the specified directory and its subdirectories.
+    
+    Args:
+        start_path: Path to start searching from (optional, defaults to current directory)
+    """
+    search_path = Path(start_path) if start_path else Path.cwd()
+    
+    if not search_path.exists():
+        return f"Search path does not exist: {search_path}"
+    
+    procfiles = []
+    
+    try:
+        # Search current directory and up to 2 levels of subdirectories
+        for procfile in search_path.rglob("Procfile"):
+            try:
+                # Limit depth to avoid searching too deep
+                if len(procfile.parts) - len(search_path.parts) <= 2:
+                    content_preview = procfile.read_text()[:200]  # First 200 chars
+                    if len(content_preview) == 200:
+                        content_preview += "..."
+                    procfiles.append({
+                        "path": str(procfile),
+                        "size": procfile.stat().st_size,
+                        "preview": content_preview
+                    })
+            except Exception as e:
+                procfiles.append({
+                    "path": str(procfile),
+                    "error": str(e)
+                })
+    except Exception as e:
+        return f"Error searching for Procfiles: {str(e)}"
+    
+    if not procfiles:
+        return f"No Procfiles found in {search_path} or its subdirectories"
+    
+    result = f"Found {len(procfiles)} Procfile(s):\n\n"
+    for i, pf in enumerate(procfiles, 1):
+        result += f"{i}. {pf['path']}\n"
+        if "error" in pf:
+            result += f"   Error: {pf['error']}\n"
+        else:
+            result += f"   Size: {pf['size']} bytes\n"
+            result += f"   Preview: {pf['preview']}\n"
+        result += "\n"
+    
+    return result
 
 @mcp.tool()
 async def overmind_is_running(working_dir: Optional[str] = None) -> str:

@@ -39,8 +39,11 @@ uvx --from git+https://github.com/geoffjay/mcp-servers#subdirectory=overmind mcp
 - `overmind_connect` - Get connection instructions for processes
 - `overmind_is_running` - Check if Overmind is running
 - `overmind_check_procfile` - Validate Procfile existence and contents
+- `overmind_find_procfiles` - Find all Procfiles in a directory tree
 
 **Requirements**: Overmind and tmux must be installed on the system.
+
+**Testing**: The `overmind/test_environment/` directory contains a complete test setup with sample processes and testing utilities. Run `./overmind/test_environment/run_tests.sh` for comprehensive testing.
 
 ## Quick Start
 
