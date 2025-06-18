@@ -14,11 +14,13 @@ The [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) is an open 
 **Purpose**: Process management for Procfile-based applications using [Overmind](https://github.com/DarthSim/overmind)
 
 **Installation**:
+
 ```bash
 uvx --from git+https://github.com/geoffjay/mcp-servers#subdirectory=overmind mcp-server-overmind
 ```
 
 **Key Features**:
+
 - Start, stop, and restart processes defined in Procfiles
 - Monitor process status and health
 - Execute commands within the Overmind environment
@@ -26,6 +28,7 @@ uvx --from git+https://github.com/geoffjay/mcp-servers#subdirectory=overmind mcp
 - Support for custom Procfile locations and formations
 
 **Tools Available**:
+
 - `overmind_start` - Start Overmind with optional configuration
 - `overmind_stop` - Stop specific processes or all processes
 - `overmind_restart` - Restart specified processes
@@ -174,17 +177,13 @@ For issues with specific servers, please refer to their individual README files.
 
 ## Server Status
 
-| Server | Status | Version | Last Updated |
-|--------|--------|---------|--------------|
-| overmind | ✅ Stable | 0.1.0 | January 2025 |
+| Server   | Status    | Version | Last Updated |
+| -------- | --------- | ------- | ------------ |
+| overmind | ✅ Stable | 0.1.0   | January 2025 |
 
 ## Roadmap
 
 Future servers under consideration:
-- Database management (PostgreSQL, MySQL)
-- Container orchestration (Docker, Kubernetes)
-- CI/CD pipeline management
-- Cloud service management (AWS, GCP, Azure)
-- Development environment setup
 
-Suggestions for new servers are welcome! Please open an issue to discuss your ideas. 
+- Development environment setup
+- Audio processing (MIDI/OSC)
