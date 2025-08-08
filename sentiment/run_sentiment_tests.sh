@@ -1,5 +1,5 @@
 #!/bin/bash
 set -ex
 cd sentiment
-uv sync --dev
+uv pip install -e .[dev]
 uv run pytest

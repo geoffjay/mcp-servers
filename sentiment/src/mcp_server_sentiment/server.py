@@ -21,7 +21,7 @@ class SentimentManager:
         """Check if the VADER lexicon is downloaded, and if not, download it."""
         try:
             nltk.data.find('sentiment/vader_lexicon.zip')
-        except nltk.downloader.DownloadError:
+        except LookupError:
             nltk.download('vader_lexicon')
 
     async def get_news(self, stock_symbol: str) -> Optional[Dict[str, Any]]:
