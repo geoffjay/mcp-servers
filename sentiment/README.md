@@ -43,7 +43,10 @@ The server can be used with any MCP-compatible client. For Claude Desktop, add t
         "--from",
         "git+https://github.com/geoffjay/mcp-servers#subdirectory=sentiment",
         "mcp-server-sentiment"
-      ]
+      ],
+      "env": {
+        "NEWS_API_KEY": "<ENV Value>"
+      }
     }
   }
 }
