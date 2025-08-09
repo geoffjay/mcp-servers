@@ -19,6 +19,17 @@ The [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) is an open 
 uvx --from git+https://github.com/geoffjay/mcp-servers#subdirectory=overmind mcp-server-overmind
 ```
 
+### 📈 Fundamental Analysis Server
+
+**Path**: `fundamental_analysis/`
+**Purpose**: Performs fundamental analysis for a given stock code using the [Finnhub API](https://finnhub.io/).
+
+**Installation**:
+
+```bash
+uvx --from git+https://github.com/geoffjay/mcp-servers#subdirectory=fundamental_analysis mcp-server-fundamental-analysis
+```
+
 **Key Features**:
 
 - Start, stop, and restart processes defined in Procfiles
@@ -180,9 +191,10 @@ For issues with specific servers, please refer to their individual README files.
 
 ## Server Status
 
-| Server   | Status    | Version | Last Updated |
-| -------- | --------- | ------- | ------------ |
-| overmind | ✅ Stable | 0.1.0   | January 2025 |
+| Server               | Status    | Version | Last Updated |
+| -------------------- | --------- | ------- | ------------ |
+| overmind             | ✅ Stable | 0.1.0   | January 2025 |
+| fundamental_analysis | ✅ Stable | 0.1.0   | January 2025 |
 
 ## Roadmap
 
