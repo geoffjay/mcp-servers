@@ -2,9 +2,10 @@
 
 import asyncio
 import json
+import os
 import finnhub
 from mcp.server.fastmcp import FastMCP
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 
 # Initialize FastMCP server
 mcp = FastMCP("fundamental_analysis")
@@ -66,21 +67,27 @@ class FundamentalAnalysisManager:
             return {"error": f"An unexpected error occurred: {e}"}
 
 @mcp.tool()
-async def get_fundamental_analysis(ticker: str, finnhub_api_key: str) -> str:
+async def get_fundamental_analysis(ticker: str, finnhub_api_key: Optional[str] = None) -> str:
     """
     Performs fundamental analysis for a given stock code using the Finnhub API.
+    The Finnhub API key is read from the `finnhub_api_key` argument, or from
+    the `FINNHUB_API_KEY` environment variable if the argument is not provided.
 
     Args:
         ticker: The stock ticker symbol (e.g., AAPL).
-        finnhub_api_key: Your Finnhub API key.
+        finnhub_api_key: Your Finnhub API key (optional).
 
     Returns:
         A JSON string containing the fundamental analysis report.
     """
-    if not finnhub_api_key:
-        return json.dumps({"error": "Finnhub API key is required."})
+    api_key = finnhub_api_key or os.getenv("FINNHUB_API_KEY")
 
-    manager = FundamentalAnalysisManager(api_key=finnhub_api_key)
+    if not api_key:
+        return json.dumps({
+            "error": "Finnhub API key not found. Please provide it as an argument or set the FINNHUB_API_KEY environment variable."
+        })
+
+    manager = FundamentalAnalysisManager(api_key=api_key)
 
     # Running the synchronous get_fundamental_analysis in a separate thread
     # to avoid blocking the asyncio event loop.
