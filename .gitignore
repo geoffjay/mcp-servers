@@ -1,5 +1,7 @@
 __pycache__
 
+.claude/settings.local.json
+
 /overmind/.pytest_cache
 /overmind/.venv
 /overmind/dist
