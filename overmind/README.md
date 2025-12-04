@@ -82,6 +82,14 @@ The server can be used with any MCP-compatible client. For Claude Desktop, add t
   - `working_dir`: Directory to check (optional)
 
 - **`overmind_echo`**: Echo output from master Overmind instance
+  - `timeout`: How many seconds to capture output (default: 5.0)
+
+- **`overmind_list_processes`**: List all processes managed by Overmind
+  - Returns process names that can be used with `overmind_logs`
+
+- **`overmind_logs`**: Get logs from a specific Overmind process
+  - `process_name`: Name of the process to get logs from (required)
+  - `num_lines`: Number of lines to retrieve from scrollback (default: 100, max: 10000)
 
 #### Environment and Execution
 
@@ -96,6 +104,10 @@ The server can be used with any MCP-compatible client. For Claude Desktop, add t
 
 - **`overmind_check_procfile`**: Check Procfile existence and contents
   - `path`: Directory path to check (optional)
+
+- **`overmind_find_procfiles`**: Find all Procfiles in a directory tree
+  - `start_path`: Path to start searching from (optional, defaults to current directory)
+  - Searches current directory and up to 2 levels of subdirectories
 
 ## Examples
 
@@ -138,8 +150,34 @@ running = await overmind_is_running()
 # Get process status
 status = await overmind_status()
 
-# Echo recent output
+# Echo recent output (captures for 5 seconds by default)
 output = await overmind_echo()
+
+# Echo with custom timeout
+output = await overmind_echo(timeout=10.0)
+```
+
+### Log Capture
+
+```python
+# List all running processes
+processes = await overmind_list_processes()
+
+# Get logs from a specific process
+logs = await overmind_logs("web")
+
+# Get more lines from scrollback
+logs = await overmind_logs("worker", num_lines=500)
+```
+
+### Finding Procfiles
+
+```python
+# Find all Procfiles in current directory and subdirectories
+procfiles = await overmind_find_procfiles()
+
+# Search from a specific path
+procfiles = await overmind_find_procfiles("/path/to/projects")
 ```
 
 ## Architecture
