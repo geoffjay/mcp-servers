@@ -10,10 +10,10 @@ import subprocess
 import tempfile
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union, Tuple
-from mcp.server.fastmcp import FastMCP
+from mcp.server.mcpserver import MCPServer
 
-# Initialize FastMCP server
-mcp = FastMCP("overmind")
+# Initialize MCP server
+mcp = MCPServer("overmind")
 
 class OvermindManager:
     """Manager for Overmind processes and operations."""
